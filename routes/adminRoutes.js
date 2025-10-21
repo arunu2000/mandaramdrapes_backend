@@ -5,6 +5,25 @@ const User=require("../models/User")
 const bcrypt=require("bcrypt")
 const router=express.Router()   
 
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin management APIs
+ */
+
+/**
+ * @swagger
+ * /api/admin/dashboard:
+ *   get:
+ *     summary: Get admin dashboard stats
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Dashboard data
+ */
+
+
 router.get("/users",authMiddleware,adminMiddleware,async(req , res)=>{
     const users= await User.find().select("-password")
     // console.log("usersget",users)

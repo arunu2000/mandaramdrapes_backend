@@ -71,6 +71,16 @@ const getProductsByCategoryId=async(req , res)=>{
 //         res.status(500).json({ message: 'Internal server error while fetching products.' });
 //     }
 // }
+const productCard=async(req ,res)=>{
+    try{
+        const {productId}=req.params
+        const product = await Product.findById(productId)
+        res.status(200).json({message:"Product card displays successfully",product})
+    }
+    catch(err){
+        console.log("Error in product card displaying",err.message)
+        res.status(500).json({message:"Error in product card displaying"})
+    }
+}
 
-
-module.exports={getAllCategories,getAllProducts,getProductsByCategoryId}
+module.exports={getAllCategories,getAllProducts,getProductsByCategoryId,productCard}

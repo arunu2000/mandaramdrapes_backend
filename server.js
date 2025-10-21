@@ -4,6 +4,8 @@ const path = require('path')
 const connectDB=require("./config/db")
 const dotenv=require("dotenv")
 const cors = require("cors");
+const swaggerUi=require('swagger-ui-express')
+const swaggerSpec=require('./swagger')
 
 
 dotenv.config()
@@ -33,6 +35,8 @@ app.use("/api/product",productRoutes)
 app.use("/api/user", userRoutes)
 app.use("/api/cart",cartRoutes)
 app.use("/api/order",orderRoutes)
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 // app.post("/test", (req, res) => {
 //   console.log("Test route called");
 //   res.send("Test route works");
