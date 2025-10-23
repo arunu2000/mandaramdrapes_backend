@@ -56,6 +56,6 @@ const adminMiddleware = require("../middleware/adminMiddleware")
 router.post("/place",authMiddleware,placeOrder)
 router.get("/myOrders",authMiddleware,getOrders)
 router.get("/all",authMiddleware,adminMiddleware,getOrdersForAdmin)
-router.get("/update/:id",authMiddleware,adminMiddleware,updateStatus)
+router.put("/update/:id",authMiddleware,adminMiddleware,updateStatus)
 
 module.exports=router

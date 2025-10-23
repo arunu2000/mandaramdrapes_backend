@@ -2,8 +2,8 @@ const Cart=require("../models/Cart")
 const Order=require("../models/Order")
 const placeOrder=async(req,res)=>{
     try{
-        const userId=req.user.userId
-        const cart=await Cart.findById({user:userId}).populate("items.product")
+        const userId=req.user.id
+        const cart=await Cart.findOne({user:userId}).populate("items.product")
         if(!cart || cart.items.length===0){
             return res.status(400).json({message:"Cart is empty"})
         }
@@ -19,7 +19,7 @@ const placeOrder=async(req,res)=>{
             items:cart.items.map((item)=>({
                 product:item.product._id,
                 quantity:item.quantity,
-                price:item.price
+                price:item.product.price
             })),
             totalAmount,
             paymentStatus:"Pending",
@@ -38,7 +38,7 @@ const placeOrder=async(req,res)=>{
 const getOrders=async(req,res)=>{
     try{
         const userid=req.user.id
-        const orders=await Order.findById({user:userid}).populate("items.product")
+        const orders=await Order.findOne({user:userid}).populate("items.product")
         res.status(200).json({message:"Orders Fetched successfully",order:orders})
     }
     catch(err){
@@ -50,7 +50,7 @@ const getOrders=async(req,res)=>{
 const getOrdersForAdmin=async(req,res)=>{
     try{
         const userId=req.user.id
-        const orders=await Order.findById({user:userId}).populate("user", "name email")
+        const orders=await Order.findOne({user:userId}).populate("user", "name email")
         res.status(200).json({message:"Orders fetched for Admin",order:orders})
     }
     catch(err){

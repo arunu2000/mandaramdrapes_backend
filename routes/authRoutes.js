@@ -35,32 +35,6 @@ const router=express.Router()
  *       400:
  *         description: Invalid input data
  */
-
-
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Login a user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Invalid credentials
- */
-
 router.post("/signup",signup)
 router.post("/login",login)
 

@@ -1,7 +1,7 @@
 const express=require("express")
 const router=express.Router()
 const authMiddleware = require("../middleware/authMiddleware")
-const CartAdd = require("../controllers/cartController")
+const {cartAdd,cartList, cartRemove, updateProductQuantity} = require("../controllers/cartController")
 
 /**
  * @swagger
@@ -44,6 +44,9 @@ const CartAdd = require("../controllers/cartController")
  */
 
 
-router.post("/add",authMiddleware,CartAdd)
+router.post("/add",authMiddleware,cartAdd)
+router.get("/list",authMiddleware,cartList)
+router.delete("/remove/:productId",authMiddleware,cartRemove)
+router.put("/updateQuantity/:productId",authMiddleware,updateProductQuantity)
 
 module.exports=router
