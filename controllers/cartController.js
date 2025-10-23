@@ -53,7 +53,7 @@ const cartList=async(req, res)=>{
     }
     catch(err){
         console.log("Error in fetching cart",err.message)
-        res.status(500).josn({message:"Error in fetching cart"})
+        res.status(500).json({message:"Error in fetching cart"})
     }
 }
 
