@@ -2,6 +2,7 @@ const Cart=require("../models/Cart")
 const Order=require("../models/Order")
 const placeOrder=async(req,res)=>{
     try{
+        console.log("order placed called")
         const userId=req.user.id
         const cart=await Cart.findOne({user:userId}).populate("items.product")
         if(!cart || cart.items.length===0){
@@ -22,11 +23,12 @@ const placeOrder=async(req,res)=>{
                 price:item.product.price
             })),
             totalAmount,
-            paymentStatus:"Pending",
+            // paymentStatus:"Pending",
             orderStatus:"Processing"
 
         })
         await order.save()
+        await Cart.deleteOne({ user: userId })
         res.status(200).json({message:"Order created successfully",order})
     }
     catch(err){
@@ -37,8 +39,10 @@ const placeOrder=async(req,res)=>{
 
 const getOrders=async(req,res)=>{
     try{
+        console.log("my orders called");
+        
         const userid=req.user.id
-        const orders=await Order.findOne({user:userid}).populate("items.product")
+        const orders=await Order.find({user:userid}).populate({path:"items.product",select:"name image price"}).sort({createdAt:-1})
         res.status(200).json({message:"Orders Fetched successfully",order:orders})
     }
     catch(err){
@@ -62,8 +66,8 @@ const getOrdersForAdmin=async(req,res)=>{
 const updateStatus=async(req,res)=>{
     try{
         const {id}=req.params
-        const {paymentStatus,orderStatus}=req.body
-        const updatedOrder=await Order.findByIdAndUpdate(id,{paymentStatus,orderStatus},{new:true})
+        const {orderStatus}=req.body
+        const updatedOrder=await Order.findByIdAndUpdate(id,{orderStatus},{new:true})
         if(!updatedOrder){
             return res.status(400).json({message:"Order status not found to update"})
         }

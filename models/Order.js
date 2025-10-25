@@ -8,7 +8,7 @@ const orderSchema=new mongoose.Schema({
         price:{type:Number,required:true}
     }],
     totalAmount:{type:Number,required:true},
-    paymentStatus:{type:String,enum:["Pending","Paid"],default:"Pending"},
+    // paymentStatus:{type:String,enum:["Pending","Paid"],default:"Pending"},
     orderStatus:{type:String,enum:["Processing","Shipped","Delivered"],default:"Processing"}
 },{timestamps:true})
 

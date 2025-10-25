@@ -3,6 +3,7 @@ const Cart=require("../models/Cart")
 
 const cartAdd=async(req,res)=>{
     try{
+        console.log("cart add called")
         const {productId,quantity}=req.body
         const userId=req.user.id
         let cart=await Cart.findOne({user:userId})
@@ -24,7 +25,13 @@ const cartAdd=async(req,res)=>{
 
         let totalAmount=0
         for (const item of cart.items){
+         
+            
             const p=await Product.findById(item.product)
+
+            // console.log('!!!!!!!!!!!@@@@!!',Product);
+            // console.log('!!!!!!!!!!!!!',p);
+            
             totalAmount+=p.price*item.quantity
         }
         cart.totalAmount=totalAmount
@@ -39,6 +46,62 @@ const cartAdd=async(req,res)=>{
     }
 
 }
+
+// const cartAdd = async (req, res) => {
+//     try {
+//         console.log("cart add called")
+//         const { productId, quantity } = req.body
+//         const userId = req.user.id
+        
+//         let cart = await Cart.findOne({ user: userId })
+        
+//         // ... (Existing logic to create a new cart or add/update item) ...
+//         if (!cart) {
+//             cart = new Cart({ user: userId, items: [], totalAmount: 0 })
+//         }
+//         const existingCartProduct = cart.items.find((i) => i.product.toString() === productId)
+//         if (existingCartProduct) {
+//             existingCartProduct.quantity += quantity
+//         } else {
+//             cart.items.push({ product: productId, quantity })
+//         }
+        
+//         // --- START OF REVISED LOGIC FOR TOTAL CALCULATION AND CLEANUP ---
+//         let totalAmount = 0
+//         const itemsToKeep = [] // A new array to hold valid items
+        
+//         for (const item of cart.items) {
+
+//             console.log(item.product,"item product");
+            
+//             const p = await Product.findById(item.product)
+
+//             console.log(p,"ppppppppppp");
+            
+
+//             if (p) {
+//                 // Product is valid: add to total and keep in the cart
+//                 totalAmount += p.price * item.quantity
+//                 itemsToKeep.push(item) 
+//             } else {
+//                 // Product is NOT found: log a warning and discard the item
+//                 console.warn(`Product ID ${item.product} not found. Removing from cart.`)
+//             }
+//         }
+        
+//         // Update the cart's items array with only the valid items
+//         cart.items = itemsToKeep
+//         cart.totalAmount = totalAmount
+//         // --- END OF REVISED LOGIC ---
+
+//         await cart.save()
+//         res.status(200).json({ message: "Cart added successfully", cart })
+//     }
+//     catch (err) {
+//         console.error("Error in cart adding:", err.message) // Use console.error for errors
+//         res.status(500).json({ message: "Error in cart adding" })
+//     }
+// }
 
 const cartList=async(req, res)=>{
     try{
@@ -59,7 +122,7 @@ const cartList=async(req, res)=>{
 
 const cartRemove=async(req,res)=>{
     try{
-        const {productId}=req.params()
+        const {productId}=req.params
         const userId=req.user.id
         let cart=await Cart.findOne({user:userId})
         if(!cart){
@@ -82,9 +145,12 @@ const cartRemove=async(req,res)=>{
     }
 }
 
+
+
 const updateProductQuantity=async(req,res)=>{
     try{
-        const {productId}=req.params()
+        console.log("update quantity called")
+        const {productId}=req.params
         const {quantity}=req.body
         const userId=req.user.id
         let cart=await Cart.findOne({user:userId})

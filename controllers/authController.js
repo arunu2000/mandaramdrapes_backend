@@ -54,4 +54,15 @@ catch(err){
     res.status(500).json({error:"Error occured", details:err.message})
 }
 }
-module.exports={signup,login}
+
+const logout=async(req,res)=>{
+    try{
+        res.status(200).json({message:"Logout Successfull"})
+    }
+    catch(err){
+        console.log("Error during logout",err.message);
+        res.status(500).json({message:"Error during logout"})
+    }
+}
+
+module.exports={signup,login,logout}
