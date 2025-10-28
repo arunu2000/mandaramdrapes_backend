@@ -1,5 +1,6 @@
 const express=require("express")
-const { getAllCategories, getAllProducts,getProductsByCategoryId, productCard } = require("../controllers/productUserController")
+const { getAllCategories, getAllProducts,getProductsByCategoryId, productCard, getProfile } = require("../controllers/productUserController")
+const authMiddleware = require("../middleware/authMiddleware")
 const router=express.Router()
 
 /**
@@ -47,5 +48,6 @@ router.get("/shop/categories",getAllCategories)
 router.get("/shop/products",getAllProducts)
 router.get("/shop/product/:productId",productCard)
 router.get("/shop/categories/:categoryId",getProductsByCategoryId)
+router.get("/profile",authMiddleware,getProfile)
 
 module.exports=router

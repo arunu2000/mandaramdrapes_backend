@@ -53,8 +53,8 @@ const getOrders=async(req,res)=>{
 
 const getOrdersForAdmin=async(req,res)=>{
     try{
-        const userId=req.user.id
-        const orders=await Order.findOne({user:userId}).populate("user", "name email")
+        console.log("get orders for admin called")
+        const orders=await Order.find({}).populate("user", "username email").populate({path:"items.product",select:"name price image"}).sort({createdAt:-1})
         res.status(200).json({message:"Orders fetched for Admin",order:orders})
     }
     catch(err){

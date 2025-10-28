@@ -1,5 +1,6 @@
 const Category = require("../models/Category")
 const Product = require("../models/Product")
+const User=require("../models/User")
 
 const getAllCategories=async(req , res)=>{
     try{
@@ -83,4 +84,16 @@ const productCard=async(req ,res)=>{
     }
 }
 
-module.exports={getAllCategories,getAllProducts,getProductsByCategoryId,productCard}
+const getProfile=async(req, res)=>{
+    try{
+        const userId=req.user.id
+        const users=await User.findById(userId).select("username email")
+        res.status(200).json({message:"User profile data fetched successfully",users})
+    }
+    catch(err){
+        console.log("Error in User profile data fetching",err.message)
+        res.status(500).json({message:"Error in User profile data fetching"})
+    }
+}
+
+module.exports={getAllCategories,getAllProducts,getProductsByCategoryId,productCard,getProfile}
