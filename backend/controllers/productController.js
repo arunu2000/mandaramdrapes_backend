@@ -2,7 +2,12 @@ const Product=require("../models/Product")
 
 const productList=async(req , res)=>{
     try{
-        const list=await Product.find()
+        const {categoryId}=req.query
+        let filter={}
+        if(categoryId){
+            filter.category=categoryId
+        }
+        const list=await Product.find(filter).populate('category', 'name').sort({createdAt:-1})
         res.status(200).json({list})
     }
     catch(err){

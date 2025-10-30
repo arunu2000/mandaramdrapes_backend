@@ -9,7 +9,7 @@ const orderSchema=new mongoose.Schema({
     }],
     totalAmount:{type:Number,required:true},
     // paymentStatus:{type:String,enum:["Pending","Paid"],default:"Pending"},
-    orderStatus:{type:String,enum:["Processing","Shipped","Delivered"],default:"Processing"}
+    orderStatus:{type:String,enum:["Processing","Shipped","Delivered","Cancelled"],default:"Processing"}
 },{timestamps:true})
 
 module.exports=mongoose.model("Order",orderSchema)  
