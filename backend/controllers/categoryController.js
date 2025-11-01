@@ -1,5 +1,8 @@
 const { image } = require("../config/cloudinary")
 const Category=require("../models/Category")
+const Product=require('../models/Product')
+const Order=require("../models/Order")
+const Cart=require('../models/Cart')
 const categoryList=async(req ,res)=>{
     console.log("category list called")
     try{
@@ -62,99 +65,135 @@ const categoryUpdate=async(req,res)=>{
     }
 }
 
-const categoryDelete=async(req,res)=>{
-    console.log("category delete called")
-    try{
-        const{id}=req.params
-        const productsInCategory= await Product.find({category:id}).select('_id')
-        const productIds=productsInCategory.map(p=>p._id)
-        const affectedOrders=await Order.find({
-            'items.product':{$in:productIds},
-            'orderStatus':{$nin:['Delivered','Cancelled']}
-        }).select('_id')
+// const categoryDelete=async(req,res)=>{
+    
+//     try{
+//         console.log("category delete called")
+//         const{id}=req.params
+//         const productsInCategory= await Product.find({category:id}).select('_id')
+//         const productIds=productsInCategory.map(p=>p._id)
+//         const affectedOrders=await Order.find({
+//             'items.product':{$in:productIds},
+//             'orderStatus':{$nin:['Delivered','Cancelled']}
+//         }).select('_id')
 
-        const affectedOrdersIds=affectedOrders.map(p=>p._id)
-        if(affectedOrdersIds.length>0){
-            await Order.updateMany(
-                {_id:{$in:affectedOrdersIds}},
-                {$set:{orderStatus:'Cancelled'}}
-            )
-        }
-
-        const deleteCategory=await Category.findByIdAndDelete(id)
-        if(!deleteCategory){
-            return res.status(400).json({message:"Category not found to delete"})
-        }
-        res.status(200).json({message:"Category deleted successfully"})
-    }
-    catch(err){
-        res.status(500).json({message:"Error in category Delete",error:err.message})
-    }
-}
-
-
-// // controllers/categoryController.js
-// const Category = require("../models/Category");
-// const Product = require("../models/Product"); // <-- Need Product model
-// const Order = require("../models/Order");   // <-- Need Order model
-
-// // ... (categoryList, categoryAdd, categoryUpdate functions remain the same) ...
-
-// const categoryDelete = async (req, res) => {
-//     console.log("category delete called");
-//     const { id: categoryId } = req.params; // Get category ID from route params
-
-//     try {
-//         // --- Step 1: Find all products belonging to this category ---
-//         const productsInCategory = await Product.find({ category: categoryId }).select('_id');
-
-//         // Extract just the product IDs
-//         const productIds = productsInCategory.map(p => p._id);
-
-//         // --- Step 2: Find all Orders containing any of these products ---
-//         // We only care about orders that are NOT already 'Delivered' or 'Cancelled'
-//         const affectedOrders = await Order.find({
-//             'items.product': { $in: productIds }, // Find orders where items.product is one of the productIds
-//             'orderStatus': { $nin: ['Delivered', 'Cancelled'] } // Only affect active orders
-//         }).select('_id'); // We only need the order IDs for updating
-
-//         // Extract order IDs
-//         const orderIdsToCancel = affectedOrders.map(o => o._id);
-
-//         // --- Step 3: Update the status of affected orders to 'Cancelled' ---
-//         if (orderIdsToCancel.length > 0) {
+//         const affectedOrdersIds=affectedOrders.map(p=>p._id)
+//         if(affectedOrdersIds.length>0){
 //             await Order.updateMany(
-//                 { _id: { $in: orderIdsToCancel } }, // Filter by the order IDs
-//                 { $set: { orderStatus: 'Cancelled' } } // Set the new status
-//             );
-//             console.log(`Cancelled ${orderIdsToCancel.length} orders due to category deletion.`);
+//                 {_id:{$in:affectedOrdersIds}},
+//                 {$set:{orderStatus:'Cancelled'}}
+//             )
 //         }
+//         const deletedProductResult = await Product.deleteMany({ category: id });
 
-//         // --- Step 4: Delete the category itself ---
-//         const deleteCategory = await Category.findByIdAndDelete(categoryId);
-
-//         if (!deleteCategory) {
-//             return res.status(404).json({ message: "Category not found to delete" }); // Use 404 for not found
+//         // B. Clean up Carts: Remove any items that match the IDs of the deleted products
+//         // We use $pull to remove elements from the 'items' array where item.product is in productIds.
+//         const cartCleanupResult = await Cart.updateMany(
+//             { 'items.product': { $in: productIds } },
+//             { $pull: { items: { product: { $in: productIds } } } }
+//         );
+//         const deleteCategory=await Category.findByIdAndDelete(id)
+//         if(!deleteCategory){
+//             return res.status(400).json({message:"Category not found to delete"})
 //         }
-
-//         // --- Step 5: Optionally, delete products in the category ---
-//         // Decide if you want to delete the products themselves or just leave them 'orphaned'
-//         // If you delete products, orders will show 'null' for that product.
-//         // await Product.deleteMany({ category: categoryId });
-//         // console.log(`Deleted ${productIds.length} products associated with the category.`);
-
-//         res.status(200).json({
-//             message: "Category deleted successfully. Associated active orders have been cancelled.",
-//             cancelledOrdersCount: orderIdsToCancel.length
-//         });
-
-//     } catch (err) {
-//         console.error("Error in category Delete:", err.message); // Log the error for debugging
-//         res.status(500).json({ message: "Error during category deletion process", error: err.message });
+//         res.status(200).json({message:"Category deleted successfully"})
 //     }
-// };
+//     catch(err){
+//         res.status(500).json({message:"Error in category Delete",error:err.message})
+//     }
+// }
 
-// module.exports = { /* categoryList, categoryAdd, categoryUpdate, */ categoryDelete }; // Make sure to export all functions
 
+const categoryDelete = async (req, res) => {
+    try {
+        console.log("category delete called");
+        // Using 'id' from req.params as per your existing code
+        const { id } = req.params; 
+
+        // 1. Find products in the category to get their IDs
+        const productsInCategory = await Product.find({ category: id }).select('_id');
+        const productIds = productsInCategory.map(p => p._id);
+
+        // --- CORE FIX: Find affected carts before cleanup for later recalculation ---
+        const affectedCarts = await Cart.find({ 'items.product': { $in: productIds } }).select('_id items totalAmount');
+        const affectedCartIds = affectedCarts.map(cart => cart._id);
+        
+        // 2. Handle affected Orders: Find and Cancel non-Delivered/non-Cancelled orders
+        const affectedOrders = await Order.find({
+            'items.product': { $in: productIds },
+            'orderStatus': { $nin: ['Delivered', 'Cancelled'] }
+        }).select('_id');
+
+        const affectedOrdersIds = affectedOrders.map(p => p._id);
+        
+        if (affectedOrdersIds.length > 0) {
+            await Order.updateMany(
+                { _id: { $in: affectedOrdersIds } },
+                { $set: { orderStatus: 'Cancelled' } }
+            );
+            console.log(`Cancelled ${affectedOrdersIds.length} open orders due to category deletion.`);
+        }
+
+        // 3. Delete the products belonging to the category
+        const deletedProductResult = await Product.deleteMany({ category: id });
+        console.log("deletedProductResult",deletedProductResult)
+        console.log(`Deleted ${deletedProductResult.deletedCount} products.`);
+
+
+        // 4. Clean up Carts: Remove any items and recalculate totalAmount
+        
+        // A. Remove any items that match the IDs of the deleted products
+        const cartCleanupResult = await Cart.updateMany(
+            { 'items.product': { $in: productIds } },
+            { $pull: { items: { product: { $in: productIds } } } }
+        );
+        console.log(`Cleaned up ${cartCleanupResult.modifiedCount} carts by removing items.`);
+
+        // B. Recalculate and update totalAmount for all carts that were affected
+        if (affectedCartIds.length > 0) {
+            
+            // Re-fetch the modified carts to get the new `items` array
+            const modifiedCarts = await Cart.find({ _id: { $in: affectedCartIds } }).select('items totalAmount');
+            
+            // Loop through the modified carts and recalculate their total amount
+            for (const cart of modifiedCarts) {
+                let newTotal = 0;
+                
+                // For each remaining item, find the product's price.
+                // Any product found here is a valid product from another category.
+                for (const item of cart.items) {
+                    // Fetch the product price to calculate the new total
+                    const product = await Product.findById(item.product).select('price'); 
+                    
+                    if (product && product.price !== undefined) { 
+                        newTotal += product.price * item.quantity;
+                    }
+                }
+                
+                // Update the total amount in the database
+                if (cart.totalAmount !== newTotal) {
+                    await Cart.updateOne(
+                        { _id: cart._id },
+                        { $set: { totalAmount: newTotal } }
+                    );
+                    console.log(`Recalculated total for cart ${cart._id}. New total: ${newTotal}`);
+                }
+            }
+        }
+        
+        // 5. Delete the Category
+        const deleteCategoryResult = await Category.findByIdAndDelete(id);
+        
+        if (!deleteCategoryResult) {
+            return res.status(400).json({ message: "Category not found to delete" });
+        }
+        
+        res.status(200).json({ message: "Category deleted successfully" });
+    }
+    catch (err) {
+        console.error("Error in category Delete:", err.message);
+        res.status(500).json({ message: "Error in category Delete", error: err.message });
+    }
+};
 
 module.exports={categoryList,categoryAdd,categoryUpdate,categoryDelete}

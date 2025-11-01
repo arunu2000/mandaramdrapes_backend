@@ -40,7 +40,7 @@ try{
     
     const isMatch=await bcrypt.compare(password,user.password)
     if(!isMatch) {
-        return res.json({message:"password mismatched"})
+        return res.status(400).json({message:"password mismatched"})
     }
     
     const token=jwt.sign({
