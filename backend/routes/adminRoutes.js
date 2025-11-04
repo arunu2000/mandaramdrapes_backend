@@ -3,6 +3,7 @@ const authMiddleware= require("../middleware/authMiddleware")
 const adminMiddleware = require("../middleware/adminMiddleware")
 const User=require("../models/User")
 const bcrypt=require("bcrypt")
+const profileData = require("../controllers/profileAdminController")
 const router=express.Router()   
 
 /**
@@ -53,4 +54,7 @@ router.post("/users",authMiddleware,adminMiddleware,async(req,res)=>{
         res.status(500).json({message:"Error in creating user",Error:err.message})
     }
 })
+
+router.get("/adminProfile",authMiddleware,adminMiddleware,profileData)
+
 module.exports=router

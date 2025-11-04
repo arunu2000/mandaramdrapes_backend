@@ -1,3 +1,4 @@
+const mongoose = require('mongoose'); // Ensure this is imported
 const Category = require("../models/Category")
 const Product = require("../models/Product")
 const User=require("../models/User")
@@ -14,16 +15,77 @@ const getAllCategories=async(req , res)=>{
     }
 }
 
-const getAllProducts=async(req , res)=>{
-    try{
-        const products=await Product.find().populate('category', 'name').select('name image description price category')
-        res.status(200).json({message:"Products fetched successfully",products})
+// const getAllProducts=async(req , res)=>{
+//     try{
+//         const products=await Product.find().populate('category', 'name').select('name image description price category')
+//         res.status(200).json({message:"Products fetched successfully",products})
+//     }
+//     catch(err){
+//         console.log("Error in products fetching",err.message)
+//         res.status(500).json({message:"Error in products fetching"})
+//     }
+// }
+
+
+
+const getAllProducts = async (req, res) => {
+    try {
+        // --- Aggregation Pipeline for Robust Filtering ---
+        const list = await Product.aggregate([
+            // 1. Join with the categories collection (like populate)
+            {
+                $lookup: {
+                    // **VERIFY THIS NAME:** 'categories' must be the exact collection name
+                    from: 'categories', 
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'categoryDetails'
+                }
+            },
+            
+            // 2. Filter out products where the category couldn't be found (i.e., categoryDetails array is empty)
+            {
+                $match: {
+                    'categoryDetails': { $ne: [] }
+                }
+            },
+            
+            // 3. Unwind the category details to treat it as a single object
+            { $unwind: '$categoryDetails' },
+            
+            // 4. Project and shape the output fields
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    image: 1,
+                    description: 1,
+                    price: 1,
+                    // Re-create the populated 'category' field for the frontend
+                    category: {
+                        _id: '$categoryDetails._id',
+                        name: '$categoryDetails.name'
+                    }
+                }
+            },
+            // 5. Optional: Add a sort stage if your featured products are ordered (e.g., by creation date)
+            // { $sort: { createdAt: -1 } } 
+        ]);
+
+        console.log(`Fetched ${list.length} products after filtering for existing categories.`);
+
+        res.status(200).json({ 
+            message: "Products fetched successfully", 
+            products: list 
+        });
+
+    } catch (err) {
+        console.error("Error in products fetching (Aggregation):", err.message);
+        res.status(500).json({ message: "Error in products fetching" });
     }
-    catch(err){
-        console.log("Error in products fetching",err.message)
-        res.status(500).json({message:"Error in products fetching"})
-    }
-}
+};
+
+
 
 const getProductsByCategoryId=async(req , res)=>{
     try{
