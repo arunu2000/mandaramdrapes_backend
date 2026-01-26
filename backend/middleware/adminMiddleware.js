@@ -1,9 +1,11 @@
 const User=require("../models/User")
-const adminMiddleware=async(req,res,next)=>{
-    if(req.user.role==="admin"){
-        console.log("admin middleware called")
-        return next()
+const adminMiddleware = async (req, res, next) => {
+    // Since authMiddleware runs first, req.user is already populated
+    if (req.user && req.user.role === "admin") {
+        return next();
     }
-    res.status(400).json({message:"Access Denied, Not admin role"})
+    
+    // 403 means "Authenticated, but no permission"
+    res.status(403).json({ message: "Access Denied. Admin role required." });
 }
 module.exports=adminMiddleware

@@ -216,8 +216,9 @@ const cartAdd=async(req,res)=>{
 
 const cartList=async(req, res)=>{
     try{
+        console.log("cart list called")
         const userId=req.user.id
-        let cart = await Cart.findOne({ user: userId });
+        let cart = await Cart.findOne({ user: userId }).populate("items.product","name price image stock");
 
         if (!cart) {
             return res.status(200).json({ message: "Cart is empty" });
@@ -234,7 +235,7 @@ const cartList=async(req, res)=>{
         // Populate the cart for the final response as expected by the frontend
         const cartToRespond = await validatedCart.populate({
             path: "items.product",
-            select: "name price image"
+            select: "name price image stock"
         });
         // -----------------------------------------
 

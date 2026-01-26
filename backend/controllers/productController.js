@@ -21,7 +21,8 @@ const productList=async(req , res)=>{
 
 const productAdd=async(req,res)=>{
     try{
-        const {code,name,description,price,category}=req.body
+        console.log("product add by admin called")
+        const {code,name,description,price,category,stock}=req.body
         if(!code || !name || !category || !price){
             return res.status(400).json({message:"Code, name, category and price should be required"})
         }
@@ -37,13 +38,15 @@ const productAdd=async(req,res)=>{
             description,
             price,
             category,
-            image:req.file?.path || null
+            image:req.file?.path || null,
+            stock: stock ? parseInt(stock) : 0
         })
         await newProduct.save()
         res.status(200).json({message:"Product added successfully"})
     }
     catch(err){
         console.error("🔥 Full error details:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+        // console.log("Error in product adding",err.message)
         res.status(500).json({message:"Error in product adding",error:err.message})   
     }
 }
@@ -51,20 +54,23 @@ const productAdd=async(req,res)=>{
 const productUpdate=async(req,res)=>{
     try{
         const {id}=req.params
-        const {code,name,description,price,category}=req.body
+        const {code,name,description,price,category,stock}=req.body
         const updatedProduct={
             code,
             name,
             description,
             price,
             category,
-            image:req.file?.path
+            stock: stock ? parseInt(stock) : 0
         }
+        if (req.file) {
+            updatedProduct.image = req.file.path
+     }
         const productToUpdate=await Product.findByIdAndUpdate(id,updatedProduct,{new:true})
         if(!productToUpdate){
             return res.status(400).json({message:"Cannot find document for updating"})
         }
-        res.status(200).json({message:"Product updated successfully"})
+        res.status(200).json({message:"Product updated successfully",product: productToUpdate })
 
     }
     catch(err){

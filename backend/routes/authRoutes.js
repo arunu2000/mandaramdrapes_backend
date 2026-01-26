@@ -1,7 +1,12 @@
 const express=require("express")
-const {signup, logout} = require("../controllers/authController");
-const {login}=require("../controllers/authController")
-const router=express.Router()
+const {signup, logout, resendOtp, refreshTokens} = require("../controllers/authController");
+const {login}=require("../controllers/authController");
+const { verifyLoginOtp } = require("../controllers/otpController");
+const optionalAuthMiddleware = require("../middleware/optionalAuthMiddleware"); // <-- NEW IMPORT
+const { forgotPassword, verifyResetOtp, resetPassword } = require("../controllers/passwordResetController");
+
+const 
+router=express.Router()
 
 /**
  * @swagger
@@ -37,6 +42,37 @@ const router=express.Router()
  */
 router.post("/signup",signup)
 router.post("/login",login)
+router.post('/refresh', refreshTokens)
 router.post("/logout",logout)
+// router.post("/sendOtp",sendOtp)
+router.post("/login/verify",verifyLoginOtp)
+router.post('/resend-otp',resendOtp);
+router.post("/forgot-password",forgotPassword)
+router.post('/verify-reset-otp',verifyResetOtp)
+router.post('/reset-password',resetPassword)
+// src/routes/authRoutes.js
+
+// ... (existing imports)
+
+// ... (existing routes)
+
+// NEW: Endpoint for frontend to check cookie status and get role
+router.get("/status", optionalAuthMiddleware, (req, res) => {
+    if (req.user) {
+        // req.user is set by optionalAuthMiddleware if the cookie is valid
+        res.status(200).json({
+            isLoggedIn: true,
+            role: req.user.role,
+        });
+    } else {
+        // If req.user is null, the cookie was missing or invalid/expired
+        res.status(200).json({
+            isLoggedIn: false,
+            role: null,
+        });
+    }
+});
+
+// ... (existing module.exports)
 
 module.exports=router

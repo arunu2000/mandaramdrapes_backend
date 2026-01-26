@@ -7,9 +7,15 @@ const userSchema=new mongoose.Schema({
     password:{type:String,required:true},
     role:{
         type:String,
-        enum:["user","admin"],
-        default:"user"
-    }}, 
+        enum:["customer","admin"],
+        default:"customer"
+    },
+    refreshToken: { type: String, default: null },
+    wishlist: [{ 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Product" // Refers to the Product model
+    }]
+},
       {timestamps:true}
 )
 

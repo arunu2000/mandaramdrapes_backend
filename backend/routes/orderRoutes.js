@@ -1,6 +1,6 @@
 const express=require("express")
 const router=express.Router()
-const {placeOrder, getOrdersForAdmin, updateStatus} = require("../controllers/orderController")
+const {placeOrder, getOrdersForAdmin, updateStatus, verifyPayment, cancelOrder, preCheckout, placeOrderPOD} = require("../controllers/orderController")
 const authMiddleware = require("../middleware/authMiddleware")
 const {getOrders}=require("../controllers/orderController")
 const adminMiddleware = require("../middleware/adminMiddleware")
@@ -54,8 +54,13 @@ const adminMiddleware = require("../middleware/adminMiddleware")
 
 
 router.post("/place",authMiddleware,placeOrder)
+router.post("/verifyPayment",authMiddleware,verifyPayment)
+router.post("/placeOrderPOD",authMiddleware,placeOrderPOD)
+router.post("/cancel/:id", authMiddleware, cancelOrder)
+router.post("/pre-checkout", authMiddleware, preCheckout);
 router.get("/myOrders",authMiddleware,getOrders)
 router.get("/all",authMiddleware,adminMiddleware,getOrdersForAdmin)
 router.put("/update/:id",authMiddleware,adminMiddleware,updateStatus)
+
 
 module.exports=router
