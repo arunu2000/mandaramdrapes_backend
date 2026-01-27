@@ -6,7 +6,7 @@ console.log("🚀 Cloudinary instance in upload.js:", !!cloudinary.config);
 const storage=new CloudinaryStorage({
     cloudinary,
     params:{
-        folder:"categories",
+        folder:"fancy_items",
         allowedFormats:["jpg","jpeg","png","webp"],
         public_id:(req,file)=>Date.now()+ "-" +file.originalname.split(".")[0]
     }
