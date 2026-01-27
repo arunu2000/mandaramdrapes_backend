@@ -36,14 +36,14 @@ const signup =async (req, res) => {
             if(!adminExist){
                 const AdminUser = new User({ username, email, phone, password: hashedPassword, role: "admin" });
                 await AdminUser.save();
-                generateToken(AdminUser,res)
+                await generateToken(AdminUser,res)
                 
                 return res.status(201).json({ message: "Admin User created successfully", AdminUser });
             }
             
             const user = new User({ username, email, phone,password:hashedPassword });
             await user.save();
-            generateToken(user,res)
+            await generateToken(user,res)
             return res.status(201).json({ message: "User created successfully",user });
         } catch (err) {
             return res.status(500).json({ Error: "Server error", details: err.message });
@@ -51,41 +51,6 @@ const signup =async (req, res) => {
     }
 
 
-// const login =async(req,res)=>{
-// try{
-//     console.log("login called")
-//     const {email,password}=req.body
-//     const user= await User.findOne({email})
-//     if(!user) return res.status(400).json({message:"invalid credentials"})
-    
-//     const isMatch=await bcrypt.compare(password,user.password)
-//     if(!isMatch) {
-//         return res.status(400).json({message:"password mismatched"})
-//     }
-    
-//     generateToken(user,res)
-//     res.status(200).json({message:"logged in Successfully",role:user.role})
-// }
-// catch(err){
-//     res.status(500).json({error:"Error occured", details:err.message})
-// }
-// }
-
-// const logout=async(req,res)=>{
-//     try{
-//         res.clearCookie("jwt", {
-//             httpOnly: true,
-//             sameSite: "none",
-//             // secure: process.env.NODE_ENV !== "development"
-//             secure:true
-//         })
-//         res.status(200).json({message:"Logout Successfull"})
-//     }
-//     catch(err){
-//         console.log("Error during logout",err.message);
-//         res.status(500).json({message:"Error during logout"})
-//     }
-// }
 
 const logout = async (req, res) => {
     try {
